@@ -11,6 +11,10 @@ class RoomView(generics.ListAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomSerializer
 
+class GetRoomView(generics.RetrieveAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+    lookup_field = 'code'
 
 class CreateRoomView(APIView):
     serializer_class = CreateRoomSerializer
@@ -33,9 +37,11 @@ class CreateRoomView(APIView):
                 room.created_at = timezone.now()
                 room.save(update_fields=[
                           'guest_can_pause', 'votes_to_skip', 'created_at'])
+                return Response(RoomSerializer(room).data, status=status.HTTP_200_OK)
             else:
                 room = Room.objects.create(host=host,
                                            guest_can_pause=guest_can_pause,
                                            votes_to_skip=votes_to_skip)
-
-            return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
+                return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
+        
+        return Response({"Bad request":"Invalid data..."}, status=status.HTTP_400_BAD_REQUEST)

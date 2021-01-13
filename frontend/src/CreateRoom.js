@@ -8,9 +8,36 @@ import Radio from "@material-ui/core/Radio";
 import RadioGroup from "@material-ui/core/RadioGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import axios from 'axios'
 
 function CreateRoom() {
-  const defaultVotes = 2;
+  const [state, setState] = useState({
+    guestCanPause: true,
+    votesToSkip: 2,
+  });
+
+  const handlePauseChange = (e) => {
+    const { name, value } = e.target;
+    setState((prevState) => {
+      return { ...prevState, [name]: value === "true" ? true : false };
+    });
+  };
+
+  const handleVotesChange = (e) => {
+    const { name, value } = e.target;
+    setState((prevState) => {
+      return { ...prevState, [name]: value };
+    });
+  };
+
+  const handleSubmit = () => {
+    const params = {
+      votes_to_skip: state.votesToSkip,
+      guest_can_pause: state.guestCanPause,
+    };
+    axios.post("http://127.0.0.1:8000/api/create-room", params).then((res) => console.log(res.data));
+  };
   return (
     <Grid container spacing={1}>
       <Grid item xs={12} align="center">
@@ -20,10 +47,15 @@ function CreateRoom() {
       </Grid>
       <Grid item xs={12} align="center">
         <FormControl component="fieldset">
-          <FormHelperText>
+          <FormHelperText component="span">
             <div align="center">Guest Control of Playback State</div>
           </FormHelperText>
-          <RadioGroup row defaultValue="true">
+          <RadioGroup
+            name="guestCanPause"
+            onChange={handlePauseChange}
+            row
+            defaultValue="true"
+          >
             <FormControlLabel
               value="true"
               control={<Radio color="primary" />}
@@ -42,23 +74,25 @@ function CreateRoom() {
       <Grid item xs={12} align="center">
         <FormControl>
           <TextField
+            name="votesToSkip"
+            onChange={handleVotesChange}
             required={true}
             type="number"
-            defaultValue={defaultVotes}
+            defaultValue={state.votesToSkip}
             inputProps={{ min: 1, style: { textAlign: "center" } }}
           />
-          <FormHelperText>
+          <FormHelperText component="span">
             <div align="center">Votes Required To Skip Song</div>
           </FormHelperText>
         </FormControl>
       </Grid>
       <Grid item xs={12} align="center">
-        <Button color="primary" variant="contained">
+        <Button color="primary" variant="contained" onClick={handleSubmit} >
           Create A Room
         </Button>
       </Grid>
       <Grid item xs={12} align="center">
-        <Button color="secondary" variant="contained" to='/' component={Link}>
+        <Button color="secondary" variant="contained" to="/" component={Link}>
           Back
         </Button>
       </Grid>
