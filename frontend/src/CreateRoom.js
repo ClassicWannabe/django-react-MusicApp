@@ -1,22 +1,23 @@
-import Button from "@material-ui/core/Button";
-import Grid from "@material-ui/core/Grid";
-import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import FormControl from "@material-ui/core/FormControl";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
+import {
+  Button,
+  Grid,
+  Typography,
+  TextField,
+  FormHelperText,
+  FormControl,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+} from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import axios from 'axios'
+import axios from "axios";
 
 function CreateRoom(props) {
   const [state, setState] = useState({
     guestCanPause: true,
     votesToSkip: 2,
   });
-  console.log(props);
   const handlePauseChange = (e) => {
     const { name, value } = e.target;
     setState((prevState) => {
@@ -36,16 +37,18 @@ function CreateRoom(props) {
       votes_to_skip: state.votesToSkip,
       guest_can_pause: state.guestCanPause,
     };
-    axios.post("http://127.0.0.1:8000/api/create-room", params).then((res) => props.history.push(`/room/${res.data.code}`));
+    axios
+      .post("http://127.0.0.1:8000/api/create-room", params)
+      .then((res) => props.history.push(`/room/${res.data.code}`));
   };
   return (
-    <Grid container spacing={1}>
-      <Grid item xs={12} align="center">
+    <Grid container spacing={1} align='center'>
+      <Grid item xs={12}>
         <Typography component="h4" variant="h4">
-          Create A Room
+          Create a Room
         </Typography>
       </Grid>
-      <Grid item xs={12} align="center">
+      <Grid item xs={12}>
         <FormControl component="fieldset">
           <FormHelperText component="span">
             <div align="center">Guest Control of Playback State</div>
@@ -71,7 +74,7 @@ function CreateRoom(props) {
           </RadioGroup>
         </FormControl>
       </Grid>
-      <Grid item xs={12} align="center">
+      <Grid item xs={12}>
         <FormControl>
           <TextField
             name="votesToSkip"
@@ -82,16 +85,16 @@ function CreateRoom(props) {
             inputProps={{ min: 1, style: { textAlign: "center" } }}
           />
           <FormHelperText component="span">
-            <div align="center">Votes Required To Skip Song</div>
+            <div align="center">Votes Required to Skip Song</div>
           </FormHelperText>
         </FormControl>
       </Grid>
-      <Grid item xs={12} align="center">
-        <Button color="primary" variant="contained" onClick={handleSubmit} >
-          Create A Room
+      <Grid item xs={12}>
+        <Button color="primary" variant="contained" onClick={handleSubmit}>
+          Create a Room
         </Button>
       </Grid>
-      <Grid item xs={12} align="center">
+      <Grid item xs={12}>
         <Button color="secondary" variant="contained" to="/" component={Link}>
           Back
         </Button>
