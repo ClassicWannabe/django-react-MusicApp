@@ -11,12 +11,12 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import axios from 'axios'
 
-function CreateRoom() {
+function CreateRoom(props) {
   const [state, setState] = useState({
     guestCanPause: true,
     votesToSkip: 2,
   });
-
+  console.log(props);
   const handlePauseChange = (e) => {
     const { name, value } = e.target;
     setState((prevState) => {
@@ -36,7 +36,7 @@ function CreateRoom() {
       votes_to_skip: state.votesToSkip,
       guest_can_pause: state.guestCanPause,
     };
-    axios.post("http://127.0.0.1:8000/api/create-room", params).then((res) => console.log(res.data));
+    axios.post("http://127.0.0.1:8000/api/create-room", params).then((res) => props.history.push(`/room/${res.data.code}`));
   };
   return (
     <Grid container spacing={1}>
