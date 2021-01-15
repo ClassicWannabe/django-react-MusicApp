@@ -4,7 +4,7 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import JsonResponse
-from .serializers import RoomSerializer, CreateRoomSerializer
+from .serializers import RoomSerializer, CreateRoomSerializer, UpdateRoomSerializer
 from .models import Room
 
 
@@ -78,7 +78,7 @@ class CreateRoomView(APIView):
         return Response({"Bad request": "Invalid data..."}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserInRoom(APIView):
+class UserInRoomView(APIView):
     def get(self, request, *args, **kwargs):
         if not request.session.exists(request.session.session_key):
             request.session.create()
@@ -87,12 +87,39 @@ class UserInRoom(APIView):
         }
         return JsonResponse(data, status=status.HTTP_200_OK)
 
-class LeaveRoom(APIView):
-    def post(self, request, *args, **kwargs):
+
+class LeaveRoomView(APIView):
+    def get(self, request, *args, **kwargs):
         if 'room_code' in request.session:
             request.session.pop('room_code')
             host_id = request.session.session_key
             room_results = Room.objects.filter(host=host_id)
             if len(room_results) > 0:
                 room_results[0].delete()
-        return Response({'message':'Success'}, status=status.HTTP_200_OK)
+        return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+
+
+class UpdateRoomView(APIView):
+    serializer_class = UpdateRoomSerializer
+
+    def patch(self, request, *args, **kwargs):
+        if not request.session.exists(request.session.session_key):
+            request.session.create()
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            code = serializer.data.get('code')
+            votes_to_skip = serializer.data.get('votes_to_skip')
+            guest_can_pause = serializer.data.get('guest_can_pause')
+            room_qs = Room.objects.filter(code=code)
+            if not room_qs.exists():
+                return Response({'message': 'Room not found'}, status=status.HTTP_404_NOT_FOUND)
+            user_id = request.session.session_key
+            room = room_qs[0]
+            if user_id != room.host:
+                return Response({'message': 'No rights to change'}, status=status.HTTP_403_FORBIDDEN)
+            room.votes_to_skip = votes_to_skip
+            room.guest_can_pause = guest_can_pause
+            room.save(update_fields=['guest_can_pause', 'votes_to_skip'])
+            return Response({'message': 'Success'}, status=status.HTTP_200_OK)
+
+        return Response({'Bad Request': 'Invalid Data...'}, status=status.HTTP_400_BAD_REQUEST)
