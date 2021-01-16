@@ -8,7 +8,9 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  Collapse,
 } from "@material-ui/core";
+import Alert from "@material-ui/lab/Alert";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
@@ -22,8 +24,12 @@ function CreateRoom(props) {
     updateCallBack: () => {},
   };
   const [state, setState] = useState({
-    guestCanPause: props.guestCanPause,
-    votesToSkip: props.votesToSkip,
+    guestCanPause: props.update
+      ? props.guestCanPause
+      : defaultProps.guestCanPause,
+    votesToSkip: props.update ? props.votesToSkip : defaultProps.votesToSkip,
+    errorMsg: "",
+    successMsg: "",
   });
   const handlePauseChange = (e) => {
     const { name, value } = e.target;
@@ -39,7 +45,7 @@ function CreateRoom(props) {
     });
   };
 
-  const handleSubmit = () => {
+  const handleCreateSubmit = () => {
     const params = {
       votes_to_skip: state.votesToSkip,
       guest_can_pause: state.guestCanPause,
@@ -49,11 +55,41 @@ function CreateRoom(props) {
       .then((res) => props.history.push(`/room/${res.data.code}`));
   };
 
+  const handleUpdateSubmit = () => {
+    const params = {
+      votes_to_skip: state.votesToSkip,
+      guest_can_pause: state.guestCanPause,
+      code: props.roomCode,
+    };
+    axios.patch("http://127.0.0.1:8000/api/update-room", params).then((res) => {
+      if (res.statusText == "OK") {
+        setState((prevValues) => {
+          return {
+            ...prevValues,
+            successMsg: "Room was updated",
+          };
+        });
+      } else {
+        setState((prevValues) => {
+          return {
+            ...prevValues,
+            errorMsg: "Error updating the room",
+          };
+        });
+      }
+      props.useCallback();
+    });
+  };
+
   const renderCreateButtons = () => {
     return (
       <Grid container spacing={1} align="center">
         <Grid item xs={12}>
-          <Button color="primary" variant="contained" onClick={handleSubmit}>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={handleCreateSubmit}
+          >
             Create a Room
           </Button>
         </Grid>
@@ -69,7 +105,11 @@ function CreateRoom(props) {
   const renderUpdateButtons = () => {
     return (
       <Grid item xs={12}>
-        <Button color="primary" variant="contained" onClick={handleSubmit}>
+        <Button
+          color="primary"
+          variant="contained"
+          onClick={handleUpdateSubmit}
+        >
           Update Room
         </Button>
       </Grid>
@@ -79,6 +119,33 @@ function CreateRoom(props) {
   const title = props.update ? "Update a Room" : "Create a Room";
   return (
     <Grid container spacing={1} align="center">
+      <Grid item xs={12}>
+        <Collapse in={state.errorMsg !== "" || state.successMsg !== ""}>
+          {state.successMsg !== "" ? (
+            <Alert
+              severity="success"
+              onClose={() =>
+                setState((prevValues) => {
+                  return { ...prevValues, successMsg: "" };
+                })
+              }
+            >
+              {state.successMsg}
+            </Alert>
+          ) : (
+            <Alert
+              severity="error"
+              onClose={() =>
+                setState((prevValues) => {
+                  return { ...prevValues, errorMsg: "" };
+                })
+              }
+            >
+              {state.errorMsg}
+            </Alert>
+          )}
+        </Collapse>
+      </Grid>
       <Grid item xs={12}>
         <Typography component="h4" variant="h4">
           {title}
@@ -93,7 +160,7 @@ function CreateRoom(props) {
             name="guestCanPause"
             onChange={handlePauseChange}
             row
-            defaultValue="true"
+            defaultValue={() => state.guestCanPause.toString()}
           >
             <FormControlLabel
               value="true"

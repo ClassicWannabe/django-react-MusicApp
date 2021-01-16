@@ -12,32 +12,29 @@ function Room(props) {
     showSettings: false,
   });
 
-  useEffect(
-    () =>
-      axios
-        .get(
-          `http://127.0.0.1:8000/api/get-room?code=${props.match.params.roomCode}`
-        )
-        .then((res) => {
-          console.log(res);
-          if (res.statusText !== "OK") {
-            props.clearRoom();
-            props.history.push("/");
-          }
-          return res.data;
-        })
-        .then((data) => {
-          setState((prevValues) => {
-            return {
-              ...prevValues,
-              votesToSkip: data.votes_to_skip,
-              guestCanPause: data.guest_can_pause,
-              isHost: data.is_host,
-            };
-          });
-        }),
-    []
-  );
+  const getRoomDetails = () => {
+    axios
+      .get(`http://127.0.0.1:8000/api/get-room?code=${roomCode}`)
+      .then((res) => {
+        if (res.statusText !== "OK") {
+          props.clearRoom();
+          props.history.push("/");
+        }
+        return res.data;
+      })
+      .then((data) => {
+        setState((prevValues) => {
+          return {
+            ...prevValues,
+            votesToSkip: data.votes_to_skip,
+            guestCanPause: data.guest_can_pause,
+            isHost: data.is_host,
+          };
+        });
+      });
+  };
+
+  useEffect(getRoomDetails, []);
 
   const leaveRoom = () => {
     axios.get(`http://127.0.0.1:8000/api/leave-room`).then(() => {
@@ -77,6 +74,7 @@ function Room(props) {
             votesToSkip={state.votesToSkip}
             guestCanPause={state.guestCanPause}
             roomCode={roomCode}
+            useCallback={getRoomDetails}
           />
         </Grid>
         <Grid item xs={12}>
