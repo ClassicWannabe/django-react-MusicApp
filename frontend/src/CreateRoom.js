@@ -160,7 +160,7 @@ function CreateRoom(props) {
             name="guestCanPause"
             onChange={handlePauseChange}
             row
-            defaultValue={() => state.guestCanPause.toString()}
+            defaultValue={state.guestCanPause.toString()}
           >
             <FormControlLabel
               value="true"

@@ -10,6 +10,7 @@ function Room(props) {
     guestCanPause: false,
     isHost: false,
     showSettings: false,
+    spotifyAuthenticate: false,
   });
 
   const getRoomDetails = () => {
@@ -31,6 +32,9 @@ function Room(props) {
             isHost: data.is_host,
           };
         });
+        if (data.is_host) {
+          authenticateSpotify();
+        }
       });
   };
 
@@ -50,6 +54,23 @@ function Room(props) {
         showSettings: value,
       };
     });
+
+  const authenticateSpotify = () => {
+    axios.get(`http://127.0.0.1:8000/spotify/is-authenticated`).then((res) => {
+      setState((prevValues) => {
+        return {
+          ...prevValues,
+          spotifyAuthenticate: res.data.status,
+        };
+      });
+      console.log(res.data.status);
+      if (!res.data.status) {
+        axios.get(`http://127.0.0.1:8000/spotify/get-auth-url`).then((res) => {
+          window.location.replace(res.data.url);
+        });
+      }
+    });
+  };
 
   const renderSettingsButton = () => {
     return (
