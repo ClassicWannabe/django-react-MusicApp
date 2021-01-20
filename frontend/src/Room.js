@@ -2,6 +2,7 @@ import { Grid, Typography, Button } from "@material-ui/core";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import CreateRoom from "./CreateRoom";
+import MusicPlayer from "./MusicPlayer";
 
 function Room(props) {
   const roomCode = props.match.params.roomCode;
@@ -11,6 +12,7 @@ function Room(props) {
     isHost: false,
     showSettings: false,
     spotifyAuthenticate: false,
+    song: [],
   });
 
   const getRoomDetails = () => {
@@ -38,7 +40,10 @@ function Room(props) {
       });
   };
 
-  useEffect(getRoomDetails, []);
+  useEffect(() => {
+    getRoomDetails();
+    const interval = setInterval(getCurrentSong, 1000);
+  }, []);
 
   const leaveRoom = () => {
     axios.get(`http://127.0.0.1:8000/api/leave-room`).then(() => {
@@ -63,13 +68,32 @@ function Room(props) {
           spotifyAuthenticate: res.data.status,
         };
       });
-      console.log(res.data.status);
       if (!res.data.status) {
         axios.get(`http://127.0.0.1:8000/spotify/get-auth-url`).then((res) => {
           window.location.replace(res.data.url);
         });
       }
     });
+  };
+
+  const getCurrentSong = () => {
+    axios
+      .get(`http://127.0.0.1:8000/spotify/current-song`)
+      .then((res) => {
+        if (res.statusText !== "OK") {
+          return {};
+        } else {
+          return res.data;
+        }
+      })
+      .then((data) => {
+        setState((prevValues) => {
+          return {
+            ...prevValues,
+            song: data,
+          };
+        });
+      });
   };
 
   const renderSettingsButton = () => {
@@ -114,7 +138,7 @@ function Room(props) {
   if (state.showSettings) {
     return renderSettings();
   }
-
+  console.log('The song '+state.song);
   return (
     <Grid container spacing={1} align="center">
       <Grid item xs={12}>
@@ -122,21 +146,7 @@ function Room(props) {
           Code: {roomCode}
         </Typography>
       </Grid>
-      <Grid item xs={12}>
-        <Typography variant="h6" component="h6">
-          Votes: {state.votesToSkip}
-        </Typography>
-      </Grid>
-      <Grid item xs={12}>
-        <Typography variant="h6" component="h6">
-          Guest can pause: {state.guestCanPause.toString()}
-        </Typography>
-      </Grid>
-      <Grid item xs={12}>
-        <Typography variant="h6" component="h6">
-          Is Host: {state.isHost.toString()}
-        </Typography>
-      </Grid>
+      <MusicPlayer {...state.song} />
       {state.isHost ? renderSettingsButton() : null}
       <Grid item xs={12}>
         <Button variant="contained" color="secondary" onClick={leaveRoom}>
