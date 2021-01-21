@@ -21,25 +21,29 @@ function MusicPlayer(props) {
     axios.put(`http://127.0.0.1:8000/spotify/play`);
   };
 
+  const skipSong = () => {
+    axios.post(`http://127.0.0.1:8000/spotify/skip`)
+  }
+
   return (
     <Card>
       <Grid container align="center">
         <Grid item xs={4}>
-          <img src={props.image_url} height="100%" width="100%" />
+          <img src={props.image_url || '/static/music.png'} height="100%" width="100%" />
         </Grid>
         <Grid item xs={8}>
           <Typography component="h5" variant="h5">
-            {props.title}
+            {props.title || 'No song is playing'}
           </Typography>
           <Typography color="textSecondary" variant="subtitle1">
-            {props.artist}
+            {props.artist || ' No artist'}
           </Typography>
-          <div>
-            <IconButton onClick={() => props.is_playing ? pauseSong() : playSong()}>
+          <div class='player-icons'>
+            <IconButton onClick={props.is_playing ? pauseSong : playSong}>
               {props.is_playing ? <PauseIcon /> : <PlayArrowIcon />}
             </IconButton>
-            <IconButton>
-              <SkipNextIcon />
+            <IconButton onClick={skipSong}>
+              <SkipNextIcon /> {props.votes} / {props.votes_required}
             </IconButton>
           </div>
         </Grid>

@@ -39,15 +39,15 @@ function Room(props) {
         }
       });
   };
-
   useEffect(() => {
     getRoomDetails();
-    const interval = setInterval(getCurrentSong, 1000);
+    window.myInterval = setInterval(getCurrentSong, 1000);
   }, []);
 
   const leaveRoom = () => {
     axios.get(`http://127.0.0.1:8000/api/leave-room`).then(() => {
       props.clearRoom();
+      window.clearInterval(window.myInterval)
       props.history.push("/");
     });
   };
@@ -138,7 +138,6 @@ function Room(props) {
   if (state.showSettings) {
     return renderSettings();
   }
-  console.log('The song '+state.song);
   return (
     <Grid container spacing={1} align="center">
       <Grid item xs={12}>
